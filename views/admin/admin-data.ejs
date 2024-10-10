@@ -1,0 +1,30 @@
+<%- include('../partials/header') %>
+    <div class="container mt-5">
+        <h1>Admin Names </h1>
+
+        <div class="row">
+            <div class="col-sm-8">
+                <div class="card">
+                    <div class="card-body">
+
+                        <% data.forEach(element => { %>
+                            <h3>
+                                <%= element.adminname %>
+                            </h3>
+
+
+
+                            <% }) %>
+
+
+
+
+                    </div>
+                </div>
+            </div>
+
+
+
+        </div>
+    </div>
+    <%- include('../partials/header') %>
