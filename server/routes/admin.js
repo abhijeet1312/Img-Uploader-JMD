@@ -140,8 +140,8 @@ router.post("/registerA", async(req, res) => { //registering the admin by checki
         const adminname1 = req.body.adminname;
         console.log(adminname1 + "    " + password1);
         const result = await Admin.findOne({ adminemail: adminemail1 });
-        console.log(result);
-        if (result) {
+
+        if (result) { // if user is presnt in db then no need to register him
             res.status(401).json({ message: "You are already registered" });
         } else {
             bcrypt.hash(password1, 10, async(err, hash) => {
@@ -149,9 +149,8 @@ router.post("/registerA", async(req, res) => { //registering the admin by checki
                     console.error("Error hashing password:", err);
                 } else {
                     const result = await Admin.create({ adminemail: adminemail1, password: hash, adminname: adminname1 });
-                    console.log(result);
-                    console.log("hasheddd password is" + hash);
-                    const user = result
+
+                    const user = result // admin is logged in
                     req.login(user, (err) => {
                         console.log("success");
                         res.redirect("/admin-dashboard");

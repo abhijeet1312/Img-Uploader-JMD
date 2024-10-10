@@ -35,7 +35,7 @@ router.get("/fetchadmins", async(req, res) => { // to fetch the admins of admin 
 });
 
 router.get("/user-dashboard", (req, res) => { // to render the dashboard of user
-    console.log(req.user);
+
     res.render("user/user-dashboard.ejs");
 });
 
@@ -82,13 +82,12 @@ router.post("/register", async(req, res) => {
     try {
         const username1 = req.body.username;
         const password1 = req.body.password;
-        console.log(username1 + "    " + password1);
+
         const result = await User.findOne({ username: username1 });
 
         console.log(result);
         if (result) {
-            // console.log("im in if block of register route");
-            // res.render("user/user-login.ejs");
+
 
             res.status(401).json({ message: "You are already registered" });
         } else {
@@ -98,8 +97,7 @@ router.post("/register", async(req, res) => {
                 } else {
 
                     const result = await User.create({ username: username1, password: hash });
-                    console.log(result);
-                    console.log("hasheddd password is" + hash);
+
                     const user = result
                     req.login(user, (err) => {
                         console.log("success");
@@ -122,7 +120,7 @@ router.post("/user-assignment", async(req, res) => { // to post the assignment o
         const task1 = req.body.Task;
         const adminname1 = req.body.AdminName;
         const assignment = await Assignment.create({ username: username1, task: task1, adminname: adminname1 });
-        // console.log(assignment);
+
         res.status(201).json({ message: "uploaded   assignment" });
 
     } else {
@@ -134,11 +132,10 @@ router.post("/user-assignment", async(req, res) => { // to post the assignment o
 passport.use( // passport local strategy to authenticate the logged in user
     "localUser",
     new Strategy(async function verify(username, password, cb) {
-        console.log("function inserted 2");
+
         try {
             const result = await User.find({ username: username })
-            console.log(result);
-            console.log("function inserted 2");
+                //if user is in db then compare the password with hash
             if (result) {
                 const user = result[0];
                 const storedHashedPassword = user.password;
@@ -146,7 +143,7 @@ passport.use( // passport local strategy to authenticate the logged in user
                     if (err) {
                         console.error("Error comparing passwords:", err);
                         return cb(err);
-                    } else {
+                    } else { //return logged in user
                         if (valid) {
                             return cb(null, user);
                         } else {
@@ -162,7 +159,7 @@ passport.use( // passport local strategy to authenticate the logged in user
         }
     })
 );
-console.log(process.env.PORT);
+
 passport.use( // use to authenticate user using oauth2
     "google",
     new GoogleStrategy({
@@ -172,17 +169,17 @@ passport.use( // use to authenticate user using oauth2
             userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
         },
         async(accessToken, refreshToken, profile, cb) => {
-            console.log(profile);
+
             try {
                 const result = await User.find({ username: profile.email });
-                console.log("result " + result);
+
 
                 if (result.length === 0) //check if user is registered or not
 
                 {
-                    console.log("jai mata di");
+
                     const Newuser = await User.create({ username: profile.email, password: "google" });
-                    console.log("Newuser is   " + Newuser);
+
                     cb(null, Newuser)
                 } else {
                     //already existing user 
