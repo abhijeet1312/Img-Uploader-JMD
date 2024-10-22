@@ -1,165 +1,136 @@
 import { Router } from "express";
-const router = Router();
-import bcrypt from "bcrypt";
-import User from "../models/user.js";
+const router = Router(); // Create an Express Router instance
+import bcrypt from "bcrypt"; // Import bcrypt for password hashing
+import User from "../models/user.js"; // Import User model (used elsewhere, but not in this file)
+import Admin from "../models/admin.js"; // Import Admin model
+import jwt from "jsonwebtoken"; // Import jsonwebtoken for creating JWT tokens
+import Social from "../models/soci-img.js"; // Import Social model (used to manage social media images)
 
-import Assignment from "../models/assignment.js";
-import Admin from "../models/admin.js";
-import jwt from "jsonwebtoken";
+/* Routes related to the admin functionalities */
 
-
-
-router.get("/admin", async(req, res) => { //  admin home route 
-    res.render("admin/admin.ejs");
-})
-
-router.get("/registerA", async(req, res) => { //admin registration route
-    res.render("admin/admin-register.ejs");
+// Route to render the admin home page
+router.get("/admin", async(req, res) => {
+    res.render("admin/admin.ejs"); // Renders the admin home page
 });
 
-router.get("/loginAdmin", async(req, res) => { //admin login route
-    res.render("admin/admin-login.ejs");
-})
-router.get("/logoutAdmin", (req, res) => {
-    req.logout(function(err) {
-        if (err) {
-            return next(err);
-        }
-        res.redirect("/");
+// Route to render the admin registration page
+router.get("/registerA", async(req, res) => {
+    res.render("admin/admin-register.ejs"); // Renders the admin registration page
+});
+
+// Route to render the admin login page
+router.get("/loginAdmin", async(req, res) => {
+    res.render("admin/admin-login.ejs"); // Renders the admin login page
+});
+
+// Route to render the admin dashboard
+router.get("/admin-dashboard", async(req, res) => {
+    res.render("admin/admin-dashboard.ejs"); // Renders the admin dashboard after login
+});
+
+// Route to fetch and display all users' data (Social media posts/images)
+router.get("/users-data", async(req, res) => {
+    console.log("inside all users data block");
+    const result_array = await Social.find({}); // Fetches all social data from the database
+    res.render("admin/user-list.ejs", {
+        UserslistEJS: result_array // Passes the data to the 'user-list.ejs' template
     });
 });
 
-router.get("/assignments", async(req, res) => { //assignments related to logged in admin is shown here 
-    if (!req.session.userId) {
-        return res.status(403).send('You need to log in');
-    }
+// Route to display the details of a single user by ID
+router.get("/user/:id", async(req, res) => {
+    const ID = req.params.id;
+    console.log("inside all single user data block");
+    const result_array = await Social.findById(ID); // Fetches data for a single user by ID
+    console.log(result_array);
 
-    try {
-        const user = await Admin.findById(req.session.userId);
+    res.render("admin/users-data.ejs", {
+        UserlistEJS: result_array // Passes the data to 'users-data.ejs' template to display
+    });
+});
 
-        if (user) {
-            console.log(user.adminname); // Access adminname directly  
-            const assignmentlist = await Assignment.find({ adminname: user.adminname });
-            console.log(assignmentlist);
-            res.render("assignment/assignments.ejs", { assignmentlistEJS: assignmentlist }); // Pass name to the view if using EJS  
-        } else {
-            res.status(404).send('User not found');
+// Admin logout route
+router.get("/logoutAdmin", (req, res) => {
+    req.logout(function(err) { // Logs out the admin
+        if (err) {
+            return next(err);
         }
-
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
-})
-
-router.get("/assignment/:id", (req, res) => { //this routes takes the particular assignment to different page for accepting or rejcting thr assignment
-    res.render("assignment/assignment-review.ejs", { id: req.params.id });
-    console.log("assignment id is " + req.params.id);
-});
-router.post("/assignment/:id/accept", async(req, res) => { // this route accept the assignment and returns the updated assignment with status updated to accepted
-
-    // res.status(201).json({ message: "Accepted   assignment" });
-    const assignmentId = req.params.id;
-    try {
-        const updatedAssignment = await Assignment.findByIdAndUpdate(
-            assignmentId, { status: 'accepted' }, { new: true } // Return the updated document  
-        );
-
-        if (!updatedAssignment) {
-            return res.status(404).send({ message: 'Assignment not found.' });
-        }
-        res.send({ message: 'Assignment accepted.', assignment: updatedAssignment });
-        console.log(updatedAssignment);
-    } catch (error) {
-        res.status(400).send(error);
-    }
-});
-router.post("/assignment/:id/reject", async(req, res) => { //this route reject the assignment and returns the updated assignment with status updated to rejected
-    const assignmentId = req.params.id;
-    try {
-        const updatedAssignment = await Assignment.findByIdAndUpdate(
-            assignmentId, { status: 'rejected' }, { new: true } // Return the updated document  
-        );
-
-        if (!updatedAssignment) {
-            return res.status(404).send({ message: 'Assignment not found.' });
-        }
-        res.send({ message: 'Assignment rejected.', assignment: updatedAssignment });
-        console.log(updatedAssignment);
-    } catch (error) {
-        res.status(400).send(error);
-    }
-    // res.status(201).json({ message: "Reject   assignment" });
-});
-router.get("/admin-dashboard", async(req, res) => { //renders the admin-dashboard page
-    res.render("admin/admin-dashboard.ejs");
+        res.redirect("/"); // Redirects to the home page after logout
+    });
 });
 
+/* Routes related to admin login and registration */
 
-router.post("/loginAdminMain", async(req, res) => { // here registered admin is authenticated for logging in and then he logs in and does the admin related work
+// Route to handle admin login
+router.post("/loginAdminMain", async(req, res) => {
     try {
         const username1 = req.body.adminname;
         const password = req.body.password;
         console.log(username1 + "  AND  " + password);
 
-        const user = await Admin.findOne({ adminemail: username1 }); // Use findOne to get a single user  
+        // Find the admin by email
+        const user = await Admin.findOne({ adminemail: username1 });
 
         if (!user) {
-            return res.status(401).json({ message: "Invalid Credentials" });
+            return res.status(401).json({ message: "Invalid Credentials" }); // Admin not found
         }
 
-        const isPasswordValid = await bcrypt.compare(password, user.password); //compairing the hashed password
+        // Check if the password is valid
+        const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return res.status(401).json({ message: "Invalid Credentials" });
+            return res.status(401).json({ message: "Invalid Credentials" }); // Incorrect password
         }
 
-        // Store userId in session  
-        req.session.userId = user._id; // Set the session userId here  
+        // Store userId in session
+        req.session.userId = user._id;
 
-        // Creates a JSON Web Token (JWT) for the authenticated user, containing the user's ID  
+        // Create a JWT token for the authenticated admin
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
 
-        // Set the token as an HTTP-only cookie in the response for secure storage on the client  
+        // Set the JWT as an HTTP-only cookie
         res.cookie('token', token, { httpOnly: true });
-        res.redirect("/admin-dashboard");
-
+        res.redirect("/admin-dashboard"); // Redirects to the admin dashboard
     } catch (err) {
         console.log(err);
-        res.status(500).json({ message: "Internal Server Error" });
+        res.status(500).json({ message: "Internal Server Error" }); // Error handling
     }
 });
 
-
-
-router.post("/registerA", async(req, res) => { //registering the admin by checking he is new admin or old one
-
+// Route to handle admin registration
+router.post("/registerA", async(req, res) => {
     try {
-
         const adminemail1 = req.body.adminemail;
         const password1 = req.body.password;
         const adminname1 = req.body.adminname;
         console.log(adminname1 + "    " + password1);
+
+        // Check if the admin already exists
         const result = await Admin.findOne({ adminemail: adminemail1 });
 
-        if (result) { // if user is presnt in db then no need to register him
+        if (result) { // Admin already exists
             res.status(401).json({ message: "You are already registered" });
         } else {
+            // Hash the password before saving the admin
             bcrypt.hash(password1, 10, async(err, hash) => {
                 if (err) {
                     console.error("Error hashing password:", err);
                 } else {
+                    // Create a new admin entry
                     const result = await Admin.create({ adminemail: adminemail1, password: hash, adminname: adminname1 });
 
-                    const user = result // admin is logged in
+                    const user = result;
+
+                    // Log the new admin in after registration
                     req.login(user, (err) => {
                         console.log("success");
-                        res.redirect("/admin-dashboard");
+                        res.redirect("/admin-dashboard"); // Redirect to dashboard after registration
                     });
                 }
             });
         }
     } catch (error) {
-        console.log(error);
+        console.log(error); // Handle any errors during registration
     }
 });
+
 export default router;

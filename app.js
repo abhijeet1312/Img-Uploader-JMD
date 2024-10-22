@@ -42,6 +42,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //middleware for accessing the css files
 app.use(express.static("public"));
 
+app.use('/uploads', express.static('uploads'));
 
 
 // Initialize Passport middleware for authentication  

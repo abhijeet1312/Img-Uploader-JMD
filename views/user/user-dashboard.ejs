@@ -1,29 +1,29 @@
 <%- include('../partials/header') %>
     <div class="container mt-5">
-        <h1>Assignments</h1>
+        <h1>User Submission Form</h1>
 
         <div class="row">
             <div class="col-sm-8">
                 <div class="card">
                     <div class="card-body">
 
-                        <!-- Makes POST request to /register route -->
-                        <form action="/user-assignment" method="POST">
+                        <!-- Makes POST request to /user-assignment route -->
+                        <!-- Note the enctype attribute to allow file uploads -->
+                        <form action="/user-upload" method="POST" enctype="multipart/form-data">
                             <div class="form-group">
                                 <label for="UserName">UserName</label>
-                                <input type="text" class="form-control" name="UserName">
+                                <input type="text" class="form-control" name="UserName" required>
                             </div>
                             <div class="form-group">
-                                <label for="Task">Task</label>
-                                <input type="text" class="form-control" name="Task">
+                                <label for="social_media_handle">Social Media Handle</label>
+                                <input type="text" class="form-control" name="social_media_handle" required>
                             </div>
                             <div class="form-group">
-                                <label for="AdminName">AdminName</label>
-                                <input type="text" class="form-control" name="AdminName">
+                                <label for="images">Upload Images</label>
+                                <!-- Allow multiple image uploads -->
+                                <input type="file" class="form-control" name="images" accept="image/*" multiple required>
                             </div>
-                            <button type="submit" class="btn btn-dark">Upload Assignment</button>
-                            <a class="btn btn-dark " href="/fetchadmins" role="button">Fetch Admins</a>
-                            <!-- <a class="btn btn-light btn-lg" href="/logouta" role="button">Log Out</a> -->
+                            <button type="submit" class="btn btn-dark">Submit Your Data</button>
 
                             <a class="btn btn-light btn-dark" href="/logoutUser" role="button">Log Out</a>
                         </form>
@@ -31,8 +31,6 @@
                     </div>
                 </div>
             </div>
-
-
 
         </div>
     </div>

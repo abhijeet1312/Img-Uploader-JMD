@@ -1,0 +1,26 @@
+<%- include('../partials/header') %>
+    <div class="container mt-5">
+        <h1>Assignment List</h1>
+
+        <div class="row">
+            <div class="col-sm-8">
+                <div class="card">
+                    <div class="card-body">
+
+                        <h3>
+                            UserName is:
+                            <%= UserlistEJS.userName %>. Their social handle is
+                                <%= UserlistEJS.social_media_handle %>, and they have uploaded the following images:
+                        </h3>
+
+                        <% UserlistEJS.images.forEach(image => { %>
+                            <img src="/<%= image.path.replace(/\\/g, '/') %>" alt="User Uploaded Image" style="max-width: 100%; height: auto;">
+                            <% }) %>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer') %>
